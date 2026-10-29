@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    parameters {
+        string(name: 'BUILD_ENV', defaultValue: 'staging', description: 'Target deployment environment')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Toggle unit test execution')
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -12,6 +16,9 @@ pipeline {
             }
         }
         stage('Test') {
+            when {
+                expression { params.RUN_TESTS == true }
+            }
             steps {
                 sh 'python3 -m unittest -v test_app'
             }
@@ -28,13 +35,10 @@ pipeline {
     }
     post {
         success {
-            echo 'CI pipeline completed successfully'
+            echo "Pipeline completed successfully for environment: ${params.BUILD_ENV}"
         }
         failure {
             echo 'CI pipeline failed. Check Console Output.'
-        }
-        always {
-            echo 'Pipeline execution finished'
         }
     }
 }
